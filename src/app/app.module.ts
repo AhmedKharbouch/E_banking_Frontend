@@ -1,4 +1,4 @@
-import { NgModule } from '@angular/core';
+import {APP_INITIALIZER, NgModule} from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 
 import { AppRoutingModule } from './app-routing.module';
@@ -26,6 +26,26 @@ import { AddrangeeTodepotComponent } from './depot/addrangee-todepot/addrangee-t
 import { NewFournisseurComponent } from './fournisseur/new-fournisseur/new-fournisseur.component';
 import { ListFournisseurComponent } from './fournisseur/list-fournisseur/list-fournisseur.component';
 import { UpdateFournisseurComponent } from './fournisseur/update-fournisseur/update-fournisseur.component';
+import {KeycloakAngularModule, KeycloakService} from "keycloak-angular";
+
+//add this function to initialize keycloak
+export function kcFactory(kcService: KeycloakService) {
+  return ()=> {
+
+    kcService.init({
+      config: {
+        url: 'http://localhost:8080',
+        realm: 'my-ecom-realm',
+        clientId: 'AngularProductsApp'
+      },
+      initOptions: {
+        onLoad: 'check-sso',
+        checkLoginIframe: true
+      }
+    })
+  }
+  }
+
 
 @NgModule({
   declarations: [
@@ -58,9 +78,13 @@ import { UpdateFournisseurComponent } from './fournisseur/update-fournisseur/upd
         AppRoutingModule,
         HttpClientModule, //ici on ajoute le module http client
         ReactiveFormsModule,
-        FormsModule
+        FormsModule,
+        KeycloakAngularModule,
     ],
-  providers: [],
+  providers: [{
+    //add provider for APP_INITIALIZER
+    provide: APP_INITIALIZER,deps:[KeycloakService],useFactory: kcFactory,multi: true}
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
